@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Resume | Pradeep Bansal</title>
+    <!-- Chosen Palette: Professional Calm -->
+    <!-- Application Structure Plan: The SPA is designed as a multi-view dashboard. A top navigation bar allows users to switch between 'Dashboard', 'Experience Deep Dive', 'Skills Explorer', and 'Achievements'. This structure was chosen to cater to different audiences: a recruiter can get a quick overview from the Dashboard (with a career timeline and skill summary chart), while a hiring manager can use the 'Experience' view for details, and a technical lead can use the 'Skills' view to filter for specific technologies. This non-linear approach is more user-centric and efficient than a traditional, linear resume. -->
+    <!-- Visualization & Content Choices: 
+        - Career Progression: Report Info -> Job history with dates. Goal -> Visualize career timeline. Viz -> Horizontal Bar Chart (styled as a timeline) using Chart.js. Interaction -> Hover tooltips for details. Justification -> More intuitive than a text list for understanding career path.
+        - Skill Distribution: Report Info -> Categorized technical skills. Goal -> Show skill breadth. Viz -> Doughnut Chart using Chart.js. Interaction -> Hover to see skill count per category. Justification -> Provides a quick visual summary of technical strengths.
+        - Detailed Experience: Report Info -> Job descriptions and contributions. Goal -> Organize large text blocks. Presentation -> Interactive Accordion using HTML/JS. Interaction -> Click to expand/collapse job details. Justification -> Prevents a wall of text and allows focused reading.
+        - Technical Skills: Report Info -> Full list of technologies. Goal -> Allow filtering. Presentation -> Filter buttons and a dynamic grid of skills. Interaction -> Click buttons to filter skills by category. Justification -> Enables technical reviewers to quickly find relevant skills.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+        .nav-item {
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-item.active {
+            border-bottom-color: #0d6efd;
+            color: #0d6efd;
+            font-weight: 600;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 350px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .accordion-header {
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .accordion-header:hover {
+            background-color: #e9ecef;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+        .skill-btn {
+            transition: all 0.2s ease;
+        }
+        .skill-btn.active {
+            background-color: #0d6efd;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800">Pradeep Bansal</h1>
+            <p class="text-lg md:text-xl text-gray-600 mt-2">9.5+ YOE in QA Leadership, AI-Driven Automation, and Quality Engineering Excellence</p>
+            <div class="mt-4 flex justify-center space-x-6 text-blue-600">
+                <a href="https://www.linkedin.com/in/pradeep-bansal" target="_blank" class="hover:underline">LinkedIn</a>
+                <a href="https://github.com/pradeep-bansal" target="_blank" class="hover:underline">GitHub</a>
+                <a href="mailto:pdp1208@gmail.com" class="hover:underline">pdp1208@gmail.com</a>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="flex justify-center border-b-2 border-gray-200 mb-8">
+            <button data-target="dashboard" class="nav-item active py-4 px-6 text-sm md:text-base font-medium text-gray-500 hover:text-blue-600">Dashboard</button>
+            <button data-target="experience" class="nav-item py-4 px-6 text-sm md:text-base font-medium text-gray-500 hover:text-blue-600">Experience Deep Dive</button>
+            <button data-target="skills" class="nav-item py-4 px-6 text-sm md:text-base font-medium text-gray-500 hover:text-blue-600">Skills Explorer</button>
+            <button data-target="achievements" class="nav-item py-4 px-6 text-sm md:text-base font-medium text-gray-500 hover:text-blue-600">Achievements</button>
+        </nav>
+
+        <main>
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="content-section active">
+                <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm space-y-8">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Profile Summary</h2>
+                        <p class="text-gray-700 leading-relaxed">Highly accomplished and impact-driven QA Engineering Leader with 9.5+ years of proven success in building enterprise-grade test strategies, scaling AI-powered automation frameworks, and leading high-performing QA teams across Banking, Healthcare, Payments, and SaaS platforms.</p>
+                    </div>
+                    
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Career Progression</h2>
+                        <p class="text-center text-gray-600 mb-4">This timeline provides a high-level overview of my professional journey, highlighting my tenure at various leading technology and financial firms. Hover over any bar to see the specific role and duration.</p>
+                        <div class="chart-container">
+                            <canvas id="careerTimelineChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Core Technical Landscape</h2>
+                        <p class="text-center text-gray-600 mb-4">This chart illustrates the distribution of my technical skills across different categories. It provides a quick glance at my areas of expertise, with a strong focus on Automation, AI/LLM, and DevOps. Hover over a segment to see the category.</p>
+                         <div class="chart-container h-80 md:h-96 max-h-[400px]">
+                            <canvas id="skillsDistributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Experience Section -->
+            <section id="experience" class="content-section">
+                 <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm space-y-4">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Professional Experience</h2>
+                    <p class="text-gray-600 mb-6">This section provides a detailed breakdown of my roles and key contributions at each organization. Click on any of the roles below to expand the section and learn more about the specific projects, technologies, and impacts I delivered.</p>
+                    <div id="experience-accordion" class="space-y-4"></div>
+                 </div>
+            </section>
+
+            <!-- Skills Section -->
+            <section id="skills" class="content-section">
+                <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Skills Explorer</h2>
+                     <p class="text-gray-600 mb-6">Explore my technical proficiencies by selecting a category below. This interactive tool allows you to filter and view the specific languages, frameworks, and tools I have experience with, making it easy to identify alignment with your technology stack.</p>
+                    <div id="skill-filters" class="flex flex-wrap justify-center gap-2 md:gap-4 mb-8"></div>
+                    <div id="skill-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+                </div>
+            </section>
+
+            <!-- Achievements Section -->
+            <section id="achievements" class="content-section">
+                <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Key Achievements & Recognition</h2>
+                        <p class="text-gray-600 mb-4">Here are some of the awards and recognitions I have received for my contributions to innovation, strategic thinking, and process improvements throughout my career.</p>
+                        <ul id="achievements-list" class="list-disc pl-5 space-y-3 text-gray-700"></ul>
+                    </div>
+                     <div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Education</h2>
+                        <p class="text-gray-600 mb-4">My formal education laid the foundation for my career in technology and engineering.</p>
+                        <div class="text-gray-700">
+                           <p class="font-semibold text-lg">B.Tech – Electronics & Communication</p>
+                           <p>JECRC, Jaipur | Graduated 2015</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const resumeData = {
+        experience: [
+            {
+                company: "Bank of New York Mellon Pvt Ltd",
+                title: "Lead QA Engineer",
+                duration: "Oct 2023 – Present",
+                description: "Enterprise AI QA Platforms",
+                contributions: [
+                    "Led a high-performing 10-member QA team for critical AI tools, Wealth Platforms, and Document Lifecycle systems, managing quality assurance for products serving millions of users and billions in assets.",
+                    "Defined and executed the comprehensive QA roadmap for Test Genie, APILIZA, and Play Genie tools, directly impacting release cycles and enhancing product stability by 15%.",
+                    "Architected and built Test Genie using Python + GPT-4o for end-to-end BDD/test code generation in under 2 minutes, cutting manual scripting effort by 60%.",
+                    "Designed, developed, and launched APILIZA: a robust Swagger-based API automation tool that achieved org-wide adoption by 5+ engineering teams.",
+                    "Implemented robust CI/CD pipelines using Docker, Assembly, and Jenkins, automating 95% of regression testing.",
+                    "Integrated Healenium for resilient self-healing locators, reducing test flakiness by 40%.",
+                ]
+            },
+            {
+                company: "Oracle India Pvt Ltd",
+                title: "Senior QA Automation Engineer",
+                duration: "Sep 2021 – Oct 2023",
+                description: "Primavera Cloud (PPM)",
+                contributions: [
+                    "Owned end-to-end test automation for Portfolio, Risks, and Measures modules, supporting a global project management platform.",
+                    "Built and maintained robust Jenkins pipelines and Selenium Grid infrastructure, reducing regression execution time by 50%.",
+                    "Led test case strategy and conducted accessibility audits (Axe, Lighthouse), ensuring WCAG 2.1 compliance.",
+                    "Consistently maintained a 100% sprint-wise regression pass rate and achieved zero blocker defects across 7+ major product releases."
+                ]
+            },
+            {
+                company: "Mastercard Technology Pvt Ltd",
+                title: "SDET II",
+                duration: "Mar 2020 – Sep 2021",
+                description: "3DS 2.0 – Consumer Identity Check",
+                contributions: [
+                    "Led authentication automation across DS2.0, ACP, and ISSM modules, securing millions of consumer transactions daily.",
+                    "Built comprehensive end-to-end BDD coverage using JBehave, SoapUI, and JUnit, achieving 85% automation coverage.",
+                    "Actively participated in DevOps QA for deployment, database validation, and PROD rollout.",
+                ]
+            },
+            {
+                company: "Fiserv India Pvt Ltd",
+                title: "QA Engineer",
+                duration: "Aug 2018 – Mar 2020",
+                description: "Digital Banking Platform",
+                contributions: [
+                    "Built robust test frameworks in Java/C# and automated regression suites, improving test efficiency by 35%.",
+                    "Created mock APIs for front-end testing before back-end readiness, accelerating development cycles by 2 weeks per sprint.",
+                    "Ensured accessibility compliance (WCAG) across digital banking products."
+                ]
+            },
+            {
+                company: "Mindtree Ltd",
+                title: "Senior Test Engineer",
+                duration: "Oct 2015 – Jul 2018",
+                description: "HealthStream Inc.",
+                contributions: [
+                    "Performed comprehensive E2E manual and automation QA for multiple healthcare modules.",
+                    "Led User Acceptance Testing (UAT), defect Root Cause Analysis (RCA), and release certification for healthcare platforms.",
+                ]
+            }
+        ],
+        skills: {
+            "Languages": ["Java", "Python", "JavaScript", "C#"],
+            "AI/LLM": ["OpenAI GPT-4/4o", "LangChain", "Hugging Face", "ElasticSearch", "Faiss Index"],
+            "Automation Tools": ["Selenium", "Cypress", "Playwright", "Postman", "RestAssured", "SoapUI"],
+            "Test Frameworks": ["JUnit", "TestNG", "Cucumber", "JBehave"],
+            "DevOps": ["Jenkins", "Docker", "Git", "Kubernetes", "Oracle Cloud", "PCF", "Azure DevOps"],
+            "Databases": ["MS SQL", "Postgres", "Oracle"],
+            "Performance": ["JMeter", "K6"],
+            "Accessibility": ["Axe", "NVDA", "Lighthouse", "WCAG"],
+            "Management": ["JIRA", "HP ALM", "Rally", "VersionOne"]
+        },
+        achievements: [
+            "<strong>Platinum Award</strong> – AI Test Genie innovation (BNY Mellon) for transforming test generation processes and accelerating SDLC by 15%.",
+            "<strong>Star of the Month</strong> – For successful Jenkins parallel execution + Healenium setup, leading to a 40% reduction in test flakiness.",
+            "<strong>Bravo Award</strong> – For APILIZA launch and its org-wide adoption, significantly improving API test automation efficiency.",
+            "<strong>Strategic Thinking Award</strong> – For QA optimization at Mastercard, contributing to a 10% reduction in deployment-related issues.",
+            "<strong>Out-performer</strong> – For enhancing CI pipeline & test automation coverage at Fiserv, improving test efficiency by 35%.",
+            "<strong>Unstoppable Award</strong> – For multi-module automation ownership at Mindtree, ensuring high quality for critical healthcare platforms.",
+        ]
+    };
+    
+    const navItems = document.querySelectorAll('.nav-item');
+    const contentSections = document.querySelectorAll('.content-section');
+
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const target = item.dataset.target;
+            
+            navItems.forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
+
+            contentSections.forEach(section => {
+                section.classList.remove('active');
+                if (section.id === target) {
+                    section.classList.add('active');
+                }
+            });
+        });
+    });
+    
+    function populateExperience() {
+        const accordionContainer = document.getElementById('experience-accordion');
+        let html = '';
+        resumeData.experience.forEach((job, index) => {
+            html += `
+                <div class="border border-gray-200 rounded-lg">
+                    <div class="accordion-header flex justify-between items-center p-4" data-index="${index}">
+                        <div>
+                            <h3 class="font-semibold text-lg text-gray-800">${job.title}</h3>
+                            <p class="text-blue-600 font-medium">${job.company}</p>
+                            <p class="text-sm text-gray-500">${job.duration}</p>
+                        </div>
+                        <span class="text-2xl text-gray-500 transform transition-transform duration-300">+</span>
+                    </div>
+                    <div class="accordion-content bg-gray-50 border-t border-gray-200">
+                        <div class="p-4">
+                             <p class="text-gray-600 font-medium mb-3">${job.description}</p>
+                            <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                                ${job.contributions.map(c => `<li>${c}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        accordionContainer.innerHTML = html;
+
+        accordionContainer.querySelectorAll('.accordion-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                const icon = header.querySelector('span');
+
+                if (content.style.maxHeight) {
+                    content.style.maxHeight = null;
+                    icon.style.transform = 'rotate(0deg)';
+                } else {
+                    document.querySelectorAll('.accordion-content').forEach(c => c.style.maxHeight = null);
+                    document.querySelectorAll('.accordion-header span').forEach(i => i.style.transform = 'rotate(0deg)');
+                    content.style.maxHeight = content.scrollHeight + "px";
+                    icon.style.transform = 'rotate(45deg)';
+                }
+            });
+        });
+    }
+
+    function populateSkills() {
+        const filtersContainer = document.getElementById('skill-filters');
+        const gridContainer = document.getElementById('skill-grid');
+        const categories = ['All', ...Object.keys(resumeData.skills)];
+
+        filtersContainer.innerHTML = categories.map(cat => 
+            `<button class="skill-btn px-4 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-100 ${cat === 'All' ? 'active' : ''}" data-category="${cat}">${cat}</button>`
+        ).join('');
+        
+        function renderSkills(category = 'All') {
+            let skillsToRender = [];
+            if (category === 'All') {
+                skillsToRender = Object.values(resumeData.skills).flat();
+            } else {
+                skillsToRender = resumeData.skills[category];
+            }
+            gridContainer.innerHTML = skillsToRender.map(skill => 
+                `<div class="bg-gray-100 text-gray-800 text-center py-3 px-2 rounded-lg text-sm">${skill}</div>`
+            ).join('');
+        }
+
+        filtersContainer.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                filtersContainer.querySelectorAll('.skill-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                renderSkills(e.target.dataset.category);
+            }
+        });
+
+        renderSkills();
+    }
+    
+    function populateAchievements() {
+        const list = document.getElementById('achievements-list');
+        list.innerHTML = resumeData.achievements.map(a => `<li>${a}</li>`).join('');
+    }
+
+    function createCareerTimelineChart() {
+        const ctx = document.getElementById('careerTimelineChart').getContext('2d');
+        const data = [...resumeData.experience].reverse();
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(job => job.company),
+                datasets: [{
+                    label: 'Tenure (Years)',
+                    data: data.map(job => {
+                        const [start, endStr] = job.duration.split('–').map(s => s.trim());
+                        const [startMonth, startYear] = start.split(' ');
+                        const endDate = endStr.toLowerCase() === 'present' ? new Date() : new Date(endStr);
+                        const startDate = new Date(`${startMonth} 1, ${startYear}`);
+                        const diffTime = Math.abs(endDate - startDate);
+                        return diffTime / (1000 * 60 * 60 * 24 * 365.25);
+                    }),
+                    backgroundColor: 'rgba(13, 110, 253, 0.6)',
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const index = context.dataIndex;
+                                const job = data[index];
+                                return `${job.title} (${job.duration})`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Tenure (Years)'
+                        }
+                    },
+                    y: {
+                        ticks: {
+                             autoSkip: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function createSkillsDistributionChart() {
+        const ctx = document.getElementById('skillsDistributionChart').getContext('2d');
+        const skillCounts = Object.entries(resumeData.skills).map(([category, skills]) => ({
+            category,
+            count: skills.length
+        }));
+
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: skillCounts.map(s => s.category),
+                datasets: [{
+                    label: 'Skill Count',
+                    data: skillCounts.map(s => s.count),
+                    backgroundColor: [
+                        '#0d6efd', '#6f42c1', '#d63384', '#fd7e14', '#ffc107', '#198754', '#20c997', '#0dcaf0', '#6c757d'
+                    ],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    }
+                }
+            }
+        });
+    }
+
+    populateExperience();
+    populateSkills();
+    populateAchievements();
+    createCareerTimelineChart();
+    createSkillsDistributionChart();
+});
+</script>
+
+</body>
+</html>
